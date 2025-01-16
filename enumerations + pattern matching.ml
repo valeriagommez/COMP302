@@ -53,3 +53,17 @@ let play (h1 : hand) (h2 : hand) : outcome =
 *)
       
 (* We need to make matches for all possible scenarios *)
+
+
+(* Enumerations - UNO *)
+
+type value = Num of int (* int is a field of Num *) | Plus2 | No | Reverse
+             
+type color = Y | G | R | B 
+type card = color * value
+             
+let green3 : card = (G, Num 3) 
+                    
+let can_follow (c1 : card) (c2 : card) = 
+  let ( (col1, val1), (col2, val2) ) = (c1, c2) in
+  col1 = col2 || val1 = val2
