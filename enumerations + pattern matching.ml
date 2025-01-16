@@ -52,3 +52,4 @@ let play (h1 : hand) (h2 : hand) : outcome =
    2. (Scissors, Rock) matches NO tuples except for the last one ( '_' ) --> L
 *)
       
+(* We need to make matches for all possible scenarios *)
