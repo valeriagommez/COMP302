@@ -46,4 +46,9 @@ let play (h1 : hand) (h2 : hand) : outcome =
     | (Scissors, Paper) -> W
     | (Paper, Rock) -> W
     | _ -> L (* Everything else is a lie *)
+  
+(* playing Scissors Rock : 
+   1. Scissors != Rock --> NOT D
+   2. (Scissors, Rock) matches NO tuples except for the last one ( '_' ) --> L
+*)
       
