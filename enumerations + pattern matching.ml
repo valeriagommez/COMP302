@@ -65,5 +65,19 @@ type card = color * value
 let green3 : card = (G, Num 3) 
                     
 let can_follow (c1 : card) (c2 : card) = 
-  let ( (col1, val1), (col2, val2) ) = (c1, c2) in
-  col1 = col2 || val1 = val2
+  (* (G, Num 3) (R, Num 4) *) 
+  match (c1, c2) with 
+    (* ( (G, Num 3) , (R, Num 4) ) *) 
+  | ( (col1, val1) , (col2, val2) ) -> 
+      if col1 = col2 (* G = R *) then true 
+      else
+        match val1, val2 with 
+        (* Num 3, Num 4 *) 
+        | Num n, Num m -> n = m (* Num 3 != Num 4 --> false *) 
+        | Plus2, Plus2 -> true
+        | No, No -> true
+        | Reverse, Reverse -> true
+        | _ -> false
+
+
+        
