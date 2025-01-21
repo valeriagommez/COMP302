@@ -57,10 +57,53 @@ let value_of_int' n  = (* the return type will always be 'a option *)
   else None 
            
     
-(* The most generic type possible will be the one chosen for the return type *)    
-               
-               
-               
-               
-               
+(* The most generic type possible will be the one chosen for the return type *) 
+
+
+(* Recursive types *)
+
+type value = Num of int | Plus2 | Reverse | Skip
+type color = R | G | Y | B
+type card = color * value
+
+            
+(* A hand contains a hand as well, the base case is Empty *)
+type hand = Empty | OneMore of card * hand    
+                                           
+(*  Green 3, Yellow Reverse *)                   
+let h = OneMore ( (G, Num 3), OneMore ( (Y, Reverse), Empty) ) 
+                                                               
+(*  Blue Skip, Green 3, Yellow Reverse *)   
+let h' = OneMore ( (B, Skip), h)
+  
+(* Making a generic list type *) 
+let 'a mylist = Nil |Cons of 'a * ('a mylist)
+                                  
+type hand = card mylist (* a hand is just a list of cards *) 
+  
+(* Finding how many cards a hand contains *)   
+let rec len (h : 'a mylist) : int =
+  match h with
+  | Empty -> 0
+  | OneMore (_, h') -> 1 + len h' (* _ is used because 'a mylist is of type 'a 
+                                  but we don't really care about it *)
+                         
+  
+(* Making it tail recursive *)
+let len_tr (h : 'a mylist) : int = 
+  let rec len_tail_recursive (h : hand) (acc : int) : int = 
+    match h with 
+    | Empty -> acc
+    | OneMore (_, h') -> len_tail_recursive h' (acc + 1)
+  in 
+  len_tail_recursive h 0
+    
+  
+
+
+
+
+
+
+
                
