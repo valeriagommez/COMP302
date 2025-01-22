@@ -17,10 +17,19 @@ let rec q1a_nat_of_int (n : int) : nat =
   in helper_int_to_nat n Z
 
 (* TODO: Write a good set of tests for {!q1b_int_of_nat}. *)
-let q1b_int_of_nat_tests : (nat * int) list = []
+let q1b_int_of_nat_tests : (nat * int) list = [
+  ( S (S (S (S (S Z)))) , 5);
+  ( S (S (S Z)), 3 );
+  ( Z , 0);
+]
 
 (* TODO:  Implement {!q1b_int_of_nat} using a tail-recursive helper. *)
-let rec q1b_int_of_nat (n : nat) : int = raise Not_implemented
+let rec q1b_int_of_nat (n : nat) : int = 
+  let rec helper_nat_to_int n acc = 
+    match n with 
+    | Z -> acc
+    | S n' -> helper_nat_to_int n' (acc + 1)
+  in helper_nat_to_int n 0
 
 (* TODO: Write a good set of tests for {!q1c_add}. *)
 let q1c_add_tests : ((nat * nat) * nat) list = []
