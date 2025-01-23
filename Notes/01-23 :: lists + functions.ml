@@ -67,13 +67,15 @@ let const y x = y   ==  let const y = fun x -> y
 *)
 
 
-let times (n : int) (f : 'a -> 'a) (x : 'a) : 'a = 
+let rec times (n : int) (f : 'a -> 'a) (x : 'a) : 'a = 
   if n = 0 then x
   else f (times (n - 1) f x) 
                              
 (* 
+
 This function is NOT tail recursive 
 - the return type of times is the same as the type of x
+
 *)
                              
                              
