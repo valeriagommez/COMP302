@@ -1,9 +1,0 @@
-(* Lists *)
-
-let ones = [1;1;1]
-           
-let rec append (l1 : 'a list) (l2 : 'a list) : 'a list = 
-  match l1 with
-  | [] -> l2
-  | x :: xs -> 
-      x ::append xs l2
