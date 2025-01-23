@@ -32,11 +32,23 @@ let rec q1b_int_of_nat (n : nat) : int =
   in helper_nat_to_int n 0
 
 (* TODO: Write a good set of tests for {!q1c_add}. *)
-let q1c_add_tests : ((nat * nat) * nat) list = []
+let q1c_add_tests : ((nat * nat) * nat) list = [
+  ( (S (S (S Z)), S (S (S Z)) ), S (S (S (S (S (S Z))))) );
+  ( (Z, S (S (S Z))), S (S (S Z)) );
+  ( (Z, Z), Z);
+  
+]
 
 (* TODO: Implement {!q1c_add}. *)
-let rec q1c_add (n : nat) (m : nat) : nat = raise Not_implemented
-
+let rec q1c_add (n : nat) (m : nat) : nat = 
+  match n with 
+  | Z -> m
+  | S n' -> 
+      (match m with 
+       | Z -> n
+       | S m' -> q1c_add n' (S (m)) )
+           
+             
 
 (* Question 2 *)
 
