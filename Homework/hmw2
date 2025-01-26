@@ -53,13 +53,25 @@ let rec q1c_add (n : nat) (m : nat) : nat =
 (* Question 2 *)
 
 (* TODO: Implement {!q2a_neg}. *)
-let q2a_neg (e : exp) : exp = raise Not_implemented
+let q2a_neg (e : exp) : exp = 
+  Times(Const (-1.0) , e)
 
 (* TODO: Implement {!q2b_minus}. *)
-let q2b_minus (e1 : exp) (e2 : exp) : exp = raise Not_implemented
+let q2b_minus (e1 : exp) (e2 : exp) : exp = 
+  Plus (
+    e1 ,
+    q2a_neg e2
+  )
 
 (* TODO: Implement {!q2c_pow}. *)
-let q2c_pow (e1 : exp) (p : nat) : exp = raise Not_implemented
+let rec q2c_pow (e1 : exp) (p : nat) : exp = 
+  match p with 
+  | Z -> Const 1.0
+  | S n' ->
+      Times (
+        e1,
+        q2c_pow e1 n'
+      )
 
 
 (* Question 3 *)
