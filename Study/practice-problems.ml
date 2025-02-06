@@ -179,7 +179,11 @@ module Functions = struct
      Implement this as a recursive function.
      Rank: *
    *)
-  let combine l1 l2 = assert false
+  let rec combine l1 l2 = 
+     match (l1, l2) with 
+     | (Nil, Nil) -> Nil
+     | (Cons (x1, xs1), Cons (x2, xs2)) -> 
+         Cons ( (x1, x2), (combine xs1 xs2) )
 
   (* The OCaml List module defines
      List.map2 : ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
