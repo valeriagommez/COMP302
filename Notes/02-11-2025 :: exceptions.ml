@@ -116,9 +116,12 @@ let rec change (coins : int list) (amt : int)
              (fun solution -> succeed (c::solution))
              (fun () -> change cs amt succeed failure)
 
-
-
-
+             
+let change_interface coins amt = 
+  change coins amt (fun x -> x) (fun () -> raise Change)
+    
+let change_interface' coins amt = 
+  change coins amt (fun x -> Some x) (fun () -> None)
 
 
 
