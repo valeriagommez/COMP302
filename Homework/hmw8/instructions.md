@@ -53,6 +53,7 @@ left_assoc_op operatorp operandp con parses operatorp as an optional left associ
 non_assoc_op operatorp operandp con parses operatorp as an optional non-associative binary operator for two operandp, and combines their results using the function con. Here, the second argument to con is the result of operatorp.
 The grammar of MiniCAML as follows.
 
+```ocaml
 atomic_typ = "int"        (* Integer type *)
            | "bool"       (* Boolean type *)
            | "(" type ")" (* Parenthesized type *)
@@ -94,6 +95,8 @@ comparative_exp = additive_exp "=" additive_exp (* Non-associative binary op = *
 
 exp = comparative_exp "," comparative_exp (* Non-associative binary operation pair construction (comma) *)
     | comparative_exp
+```
+
 Here, [] means that anything inside the square brackets is optional, e.g. both fn x => x and fn x : int => x are valid for the grammar "fn" ident [":" typ] "=>" exp.
 
 We show the grammar for typ for completeness, but note that the parser typ_parser for typ is already provided in the prelude. Your task is to implement the parser exp_parser_impl. For this, you may need to add helper parsers for each grammar class of expressions.
