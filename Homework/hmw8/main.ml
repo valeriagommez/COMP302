@@ -31,7 +31,7 @@ let rec exp_parser i =
     left_assoc_op 
       (symbol " ") 
       atomic_exp 
-      (fun f () x -> Apply(f, x))
+      (fun f () x -> Apply(f, x)) 
   in
       
   let negatable_exp = 
@@ -114,7 +114,7 @@ let rec exp_parser i =
   in
   
   let comparative_exp = 
-    left_assoc_op 
+    non_assoc_op 
       (first_of [
           const_map Equals (symbol "<") ;
           const_map LessThan (symbol "=") 
