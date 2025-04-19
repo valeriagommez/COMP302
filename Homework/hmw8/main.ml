@@ -28,19 +28,10 @@ let rec exp_parser i =
   in
   
   let applicative_exp = (* applying parameter to function *) 
-    
-    (*
-      first_of 
-        [
-          map2 (fun f x -> Apply(f, x)) 
-            applicative_exp 
-            (symbol " " |*> atomic_exp);
-        
-          atomic_exp
-        ]
-    *)
-                            
-    left_assoc_op (symbol " ") atomic_exp (fun f () x -> Apply(f, x))
+    left_assoc_op 
+      (symbol " ") 
+      atomic_exp 
+      (fun f () x -> Apply(f, x))
   in
       
   let negatable_exp = 
@@ -97,114 +88,47 @@ let rec exp_parser i =
   in
   
   let negation_exp = 
-    map 
-      (fun x -> PrimUop (Negate, x))
-      (optional (symbol "-") |>> negatable_exp);
+    prefix_op 
+      (symbol "-")
+      (negatable_exp)
+      (fun () x -> PrimUop (Negate, x)) 
   in
   
   let multiplicative_exp = 
-    first_of 
-      [
-        (* multiplicative_exp "*" negation_exp *)
-        (* 
-           map2 
-           (fun e1 e2 -> PrimBop(e1, Times, e2))
-           multiplicative_exp
-           (symbol "*" |>> negation_exp) ;
-        *)
-        
-        left_assoc_op 
-          (symbol "*") 
-          (negation_exp) 
-          (fun e1 () e2 -> PrimBop(e1, Times, e2));
-
-        
-        negation_exp
-      ]
+    left_assoc_op 
+      (symbol "*") 
+      (negation_exp) 
+      (fun e1 () e2 -> PrimBop(e1, Times, e2));
   in
   
   let additive_exp = 
-    first_of 
-      [
-        (* additive_exp "+" multiplicative_exp *)
-        
-        (* 
-          map2 
-            (fun e1 e2 -> PrimBop(e1, Plus, e2))
-            (additive_exp)
-            (symbol "+" |>> multiplicative_exp) ; 
-        *) 
-        
-        left_assoc_op 
-          (symbol "+") 
-          (multiplicative_exp) 
-          (fun e1 () e2 -> PrimBop(e1, Plus, e2));
-
-        
-        (* additive_exp "-" multiplicative_exp *) 
-        
-        (*
-          map2
-            (fun e1 e2 -> PrimBop(e1, Minus, e2))
-            (additive_exp)
-            (symbol "-" |>> multiplicative_exp) ;
-        
-        *)
-        
-        left_assoc_op 
-          (symbol "-") 
-          (multiplicative_exp) 
-          (fun e1 () e2 -> PrimBop(e1, Minus, e2));
-
-        
-        multiplicative_exp 
-      ] 
+    left_assoc_op 
+      (first_of [
+          const_map Minus (symbol "-") ;
+          const_map Plus (symbol "+") 
+        ]
+      ) 
+      (multiplicative_exp) 
+      (fun e1 operator e2 -> PrimBop(e1, operator, e2));
+    
   in
   
-  let comparative_exp =
-    first_of 
-      [
-        (* additive_exp "=" additive_exp *)
-        map2
-          (fun e1 e2 -> PrimBop(e1, Equals, e2))
-          (additive_exp)
-          (symbol "=" |>> additive_exp) ;
-        
-        (* additive_exp "<" additive_exp *)
-        map2
-          (fun e1 e2 -> PrimBop(e1, LessThan, e2))
-          (additive_exp)
-          (symbol "<" |>> additive_exp) ;
-        
-        additive_exp
-      ] 
-  in
-  
-  let exp = 
-    first_of 
-      [
-        (* comparative_exp "," comparative_exp *)
-        map2 
-          (fun e1 e2 -> Comma(e1, e2))
-          (comparative_exp)
-          (symbol "," |>> comparative_exp) ;
-        
-        comparative_exp
-      ]
-  in
+  let comparative_exp = 
+    left_assoc_op 
+      (first_of [
+          const_map Equals (symbol "<") ;
+          const_map LessThan (symbol "=") 
+        ]
+      ) 
+      (additive_exp) 
+      (fun e1 operator e2 -> PrimBop(e1, operator, e2));
+  in 
   
   let exp_parser_impl = 
-    first_of 
-      [
-        atomic_exp ;
-        applicative_exp;
-        negatable_exp;
-        negation_exp;
-        multiplicative_exp;
-        additive_exp;
-        comparative_exp;
-        exp
-      ]
+    non_assoc_op
+      (symbol ",")
+      comparative_exp
+      (fun e1 _ e2 -> Comma(e1, e2)) 
     (* END OF IMPLEMENTATION *)
   in
   exp_parser_impl i
