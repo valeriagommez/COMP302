@@ -1,7 +1,9 @@
 (** Part 1: Parsing *)
 let parse_exp_tests : (string * exp option) list = [
   ("", None)
-]
+] 
+
+exception HelperFailure of string
 
 let rec exp_parser i =
   let open Parser in
@@ -11,10 +13,7 @@ let rec exp_parser i =
     let keywords = ["true"; "false"; "let"; "in"; "end"; "if"; "then"; "else"; "fn"; "rec"] in
     identifier_except keywords, keyword_among keywords
   in
-  (* You may need to define helper parsers depending on [exp_parser] here *)
-  
-  (* IMPLEMENT HERE : *)
-  
+  (** You may need to define helper parsers depending on [exp_parser] here *)
   let atomic_exp = 
     (* ALWAYS USE MAP!! *) 
     first_of 
@@ -27,13 +26,13 @@ let rec exp_parser i =
       ]
   in
   
-  let applicative_exp = (* applying parameter to function *) 
-    left_assoc_op 
-      (symbol " ") 
-      atomic_exp 
-      (fun f () x -> Apply(f, x)) 
+  let applicative_exp = 
+    some atomic_exp |> map 
+      (function
+        | f::args -> List.fold_left (fun func input -> Apply (func, input)) f args
+      )
   in
-      
+  
   let negatable_exp = 
     first_of 
       [
@@ -47,7 +46,7 @@ let rec exp_parser i =
              (map2 
                 (fun x y -> (x,y)) 
                 (identifier) 
-                (skip (symbol "(") |>> identifier)
+                ((symbol ",") |>> identifier)
              )
           )
           (symbol "=" |>> exp_parser)
@@ -72,14 +71,14 @@ let rec exp_parser i =
         map3 
           (fun x t e -> Fn(x, t, e))
           (keyword "fn" |>> identifier)
-          (optional (keyword ":" |>> typ_parser))
+          (optional (symbol ":" |>> typ_parser))
           (symbol "=>" |>> exp_parser) ;
         
         (* rec f : t => e  OR  rec f => e *)
         map3 
           (fun x t e -> Rec(x, t, e))
           (keyword "rec" |>> identifier)
-          (optional (keyword ":" |>> typ_parser))
+          (optional (symbol ":" |>> typ_parser))
           (symbol "=>" |>> exp_parser) ;
         
         (* else *)
@@ -98,7 +97,7 @@ let rec exp_parser i =
     left_assoc_op 
       (symbol "*") 
       (negation_exp) 
-      (fun e1 () e2 -> PrimBop(e1, Times, e2));
+      (fun e1 multiplication e2 -> PrimBop(e1, Times, e2));
   in
   
   let additive_exp = 
@@ -129,7 +128,9 @@ let rec exp_parser i =
       (symbol ",")
       comparative_exp
       (fun e1 _ e2 -> Comma(e1, e2)) 
-    (* END OF IMPLEMENTATION *)
+                                     
+(* END OF IMPLEMENTATION *)
+
   in
   exp_parser_impl i
 
