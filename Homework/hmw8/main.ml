@@ -27,19 +27,17 @@ let rec exp_parser i =
       ]
   in
   
-  let applicative_exp = (* applying parameter to function *)
-                            
-    (* 
+  let applicative_exp = (* applying parameter to function *) 
     
-    first_of 
-      [
-        map2 (fun f x -> Apply(f, x)) 
-          applicative_exp 
-          (symbol " " |*> atomic_exp);
+    (*
+      first_of 
+        [
+          map2 (fun f x -> Apply(f, x)) 
+            applicative_exp 
+            (symbol " " |*> atomic_exp);
         
-        atomic_exp
-      ]
-  
+          atomic_exp
+        ]
     *)
                             
     left_assoc_op (symbol " ") atomic_exp (fun f () x -> Apply(f, x))
@@ -48,47 +46,50 @@ let rec exp_parser i =
   let negatable_exp = 
     first_of 
       [
-        (* LetComma of ident * ident * exp * exp  *)
-        (* 
-           map3 (
-            (fun (x, y) e1 e2 -> LetComma(x, y, e1, e2))
-              (keyword "let" |*> typ_parser)
-              (symbol "=" |*> exp_parser)
-              (keyword "in" |*> exp_parser <* keyword "end")
-          );
-        *)
+        (* LetComma of ident * ident * exp * exp  *) 
+        map3 
+          (fun (x, y) e1 e2 -> LetComma(x, y, e1, e2))
+          (keyword "let" |>> 
+           between 
+             (skip (accept_char '(')) 
+             (skip (accept_char ')'))
+             (map2 
+                (fun x y -> (x,y)) 
+                (identifier) 
+                (skip (symbol "(") |>> identifier)
+             )
+          )
+          (symbol "=" |>> exp_parser)
+          (between (keyword "in") (keyword "end" ) exp_parser) ; 
+        
         
         (*  Let of ident * exp * exp  *)
-        map3 (
+        map3 
           (fun x e1 e2 -> Let(x, e1, e2))
-            (keyword "let" |>> map (fun x -> Var x) (identifier))
-            (symbol "=" |*> exp_parser)
-            (keyword "in" |*> exp_parser |*> keyword "end")
-        ); 
+          (keyword "let" |>> identifier)
+          (symbol "=" |>> exp_parser)
+          (between (keyword "in") (keyword "end" ) exp_parser);
         
         (* if e then e1 else e2 *)
-        map3 (
+        map3
           (fun e e1 e2 -> If(e, e1, e2))
-            (keyword "if" |*> exp_parser)
-            (keyword "then" |*> exp_parser)
-            (keyword "else" |*> exp_parser)
-        ); 
+          (keyword "if" |>> exp_parser)
+          (keyword "then" |>> exp_parser)
+          (keyword "else" |>> exp_parser) ; 
         
         (* fn x : t => e  OR  fn x => e *) 
-        map3 (
+        map3 
           (fun x t e -> Fn(x, t, e))
-            (keyword "fn" |*> map Var ident)
-            (optional (keyword ":" |*> typ_parser))
-            (symbol "=>" |*> exp_parser)
-        );
+          (keyword "fn" |>> identifier)
+          (optional (keyword ":" |>> typ_parser))
+          (symbol "=>" |>> exp_parser) ;
         
         (* rec f : t => e  OR  rec f => e *)
-        map3 (
+        map3 
           (fun x t e -> Rec(x, t, e))
-            (keyword "rec" |*> map Var ident)
-            (optional (keyword ":" |*> typ_parser))
-            (symbol "=>" |*> exp_parser)
-        );
+          (keyword "rec" |>> identifier)
+          (optional (keyword ":" |>> typ_parser))
+          (symbol "=>" |>> exp_parser) ;
         
         (* else *)
         applicative_exp 
@@ -96,43 +97,65 @@ let rec exp_parser i =
   in
   
   let negation_exp = 
-    map( 
+    map 
       (fun x -> PrimUop (Negate, x))
-        optional (symbol "-")
-    )
+      (optional (symbol "-") |>> negatable_exp);
   in
   
-  let rec multiplicative_exp = 
+  let multiplicative_exp = 
     first_of 
       [
         (* multiplicative_exp "*" negation_exp *)
-        map2 (
-          (fun e1 e2 -> PrimBop(e1, Times, e2))
-            multiplicative_exp
-            (symbol "*" |*> negation_exp)
-            
-        );
+        (* 
+           map2 
+           (fun e1 e2 -> PrimBop(e1, Times, e2))
+           multiplicative_exp
+           (symbol "*" |>> negation_exp) ;
+        *)
+        
+        left_assoc_op 
+          (symbol "*") 
+          (negation_exp) 
+          (fun e1 () e2 -> PrimBop(e1, Times, e2));
+
         
         negation_exp
       ]
   in
   
-  let rec additive_exp = 
+  let additive_exp = 
     first_of 
       [
         (* additive_exp "+" multiplicative_exp *)
-        map2 (
-          (fun e1 e2 -> PrimBop(e1, Plus, e2))
+        
+        (* 
+          map2 
+            (fun e1 e2 -> PrimBop(e1, Plus, e2))
             (additive_exp)
-            (symbol "+" |*> multiplicative_exp)
-        );
+            (symbol "+" |>> multiplicative_exp) ; 
+        *) 
+        
+        left_assoc_op 
+          (symbol "+") 
+          (multiplicative_exp) 
+          (fun e1 () e2 -> PrimBop(e1, Plus, e2));
+
         
         (* additive_exp "-" multiplicative_exp *) 
-        map2 (
-          (fun e1 e2 -> PrimBop(e1, Minus, e2))
+        
+        (*
+          map2
+            (fun e1 e2 -> PrimBop(e1, Minus, e2))
             (additive_exp)
-            (symbol "-" |*> multiplicative_exp)
-        );
+            (symbol "-" |>> multiplicative_exp) ;
+        
+        *)
+        
+        left_assoc_op 
+          (symbol "-") 
+          (multiplicative_exp) 
+          (fun e1 () e2 -> PrimBop(e1, Minus, e2));
+
         
         multiplicative_exp 
       ] 
@@ -142,18 +165,16 @@ let rec exp_parser i =
     first_of 
       [
         (* additive_exp "=" additive_exp *)
-        map2 (
+        map2
           (fun e1 e2 -> PrimBop(e1, Equals, e2))
-            (additive_exp)
-            (symbol "=" |*> additive_exp)
-        );
+          (additive_exp)
+          (symbol "=" |>> additive_exp) ;
         
         (* additive_exp "<" additive_exp *)
-        map2 (
+        map2
           (fun e1 e2 -> PrimBop(e1, LessThan, e2))
-            (additive_exp)
-            (symbol "<" |*> additive_exp)
-        );
+          (additive_exp)
+          (symbol "<" |>> additive_exp) ;
         
         additive_exp
       ] 
@@ -163,11 +184,10 @@ let rec exp_parser i =
     first_of 
       [
         (* comparative_exp "," comparative_exp *)
-        map2 (
+        map2 
           (fun e1 e2 -> Comma(e1, e2))
-            (comparative_exp)
-            (symbol "," |*> comparative_exp)
-        );
+          (comparative_exp)
+          (symbol "," |>> comparative_exp) ;
         
         comparative_exp
       ]
